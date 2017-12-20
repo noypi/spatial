@@ -72,11 +72,71 @@ func TestContainsRange(t *testing.T) {
 	e.Close()
 
 	//
+	e = o.ContainsRange(5, 10)
+	v, has = e.Next()
+	assert.Equal("5-10", v)
+	assert.True(has)
+	_, has = e.Next()
+	assert.False(has)
+
+	e.Close()
+
+	//
 	e = o.ContainsRange(4, 7)
 	v, has = e.Next()
 	assert.Equal("3-8", v)
 	assert.True(has)
+	_, has = e.Next()
+	assert.False(has)
+
+	e.Close()
+}
+
+func TestContains(t *testing.T) {
+	assert := assertpkg.New(t)
+
+	o := New1D()
+	o.AddRange(Range{5, 10}, "5-10")
+	o.AddRange(Range{6, 10}, "6-10")
+	o.AddRange(Range{3, 8}, "3-8")
+
+	//
+	e := o.Contains(5)
+	v, has := e.Next()
+	assert.Equal("5-10", v)
+	assert.True(has)
 	v, has = e.Next()
+	assert.Equal("3-8", v)
+	assert.True(has)
+	_, has = e.Next()
+	assert.False(has)
+
+	e.Close()
+
+	//
+	e = o.Contains(4)
+	v, has = e.Next()
+	assert.Equal("3-8", v)
+	assert.True(has)
+	_, has = e.Next()
+	assert.False(has)
+
+	//
+	e = o.Contains(3)
+	v, has = e.Next()
+	assert.Equal("3-8", v)
+	assert.True(has)
+	_, has = e.Next()
+	assert.False(has)
+
+	//
+	e = o.Contains(10)
+	v, has = e.Next()
+	assert.Equal("6-10", v)
+	assert.True(has)
+	v, has = e.Next()
+	assert.Equal("5-10", v)
+	assert.True(has)
 	_, has = e.Next()
 	assert.False(has)
 

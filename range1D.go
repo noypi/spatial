@@ -10,9 +10,13 @@ func (this *Spatial1D) AddRange(r Range, v interface{}) {
 	this.mrev.Put(&r, v)
 }
 
+func (this *Spatial1D) Contains(x float64) *Enum {
+	return this.ContainsRange(x, x)
+}
+
 func (this *Spatial1D) ContainsRange(min, max float64) *Enum {
 	if IsLessOrEqual(max, min) {
-		max = min
+		max = min - Epsilonx10
 	}
 
 	oEnum := &Enum{ch: make(chan interface{}, 0)}
