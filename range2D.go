@@ -1,34 +1,52 @@
 package spatial
 
-type Point2D struct {
-	X, Y float64
+type _valuewrap struct {
+	v interface{}
 }
 
 func (this *Spatial2D) AddRange(x, y Range, v interface{}) {
-	x.maximizeIfZeroMax()
-	y.maximizeIfZeroMax()
-	this.m.Put(&_item2D{x: x, y: y}, v)
+	vwrap := &_valuewrap{v}
+	this.x.AddRange(x, vwrap)
+	this.y.AddRange(y, vwrap)
 }
 
-func (this *Spatial2D) Get(x, y Range) *Enum {
+func (this *Spatial2D) Contains(x, y float64) *Enum {
+	return this.ContainsRange(Range{x, x}, Range{y, y})
+}
+
+func (this *Spatial2D) ContainsRange(x, y Range) *Enum {
+	return this.searchRange(x, y, this.x.ContainsRange, this.y.ContainsRange)
+}
+
+func (this *Spatial2D) WithinRange(x, y Range) *Enum {
+	return this.searchRange(x, y, this.x.WithinRange, this.y.WithinRange)
+}
+
+type _search1Dfunc func(x, y float64) *Enum
+
+func (this *Spatial2D) searchRange(x, y Range, fnX, fnY _search1Dfunc) *Enum {
 	oEnum := &Enum{ch: make(chan interface{}, 0)}
-	x.maximizeIfZeroMax()
-	y.maximizeIfZeroMax()
 
 	go func() {
-		x.Min -= Epsilonx10
-		y.Min -= Epsilonx10
-		this.m.EachFrom(&_item2D{x, y}, func(k, v interface{}) bool {
-			k1 := k.(*_item2D)
-			bValid := IsLessOrEqual(k1.x.Max, x.Max) && IsLessOrEqual(k1.y.Max, y.Max)
-			if !bValid {
-				oEnum.Close()
-				return false
+		m1 := map[*_valuewrap]struct{}{}
+		e := fnX(x.Min, x.Max)
+		for {
+			v1, has := e.Next()
+			if !has {
+				break
 			}
-
-			oEnum.ch <- v
-			return true
-		})
+			m1[v1.(*_valuewrap)] = struct{}{}
+		}
+		e = fnY(y.Min, y.Max)
+		for {
+			v2, has := e.Next()
+			if !has {
+				break
+			}
+			if _, has := m1[v2.(*_valuewrap)]; has {
+				oEnum.ch <- v2.(*_valuewrap).v
+			}
+		}
 		oEnum.Close()
 	}()
 
