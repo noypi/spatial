@@ -18,3 +18,10 @@ func IsLessOrEqual(a, b float64) bool {
 
 	return IsZero(a - b)
 }
+
+type _valuewrap struct {
+	v interface{}
+}
+
+type _search1Dfunc func(x, y float64) *Enum
+type _search2Dfunc func(x, y Range) *Enum

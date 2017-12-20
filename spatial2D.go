@@ -1,8 +1,7 @@
 package spatial
 
 type Spatial2D struct {
-	x *Spatial1D
-	y *Spatial1D
+	x, y *Spatial1D
 }
 
 func New2D() *Spatial2D {
