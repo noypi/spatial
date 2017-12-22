@@ -3,7 +3,7 @@ package spatial_test
 import (
 	"testing"
 
-	. "github.com/noypi/spatial"
+	. "github.com/noypi/spatial/mem"
 	assertpkg "github.com/stretchr/testify/assert"
 )
 
