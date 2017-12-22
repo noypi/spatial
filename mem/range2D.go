@@ -1,9 +1,5 @@
 package spatial
 
-type _valuewrap struct {
-	v interface{}
-}
-
 func (this *Spatial2D) AddRange(x, y Range, v interface{}) {
 	vwrap := &_valuewrap{v}
 	this.x.AddRange(x, vwrap)
@@ -21,8 +17,6 @@ func (this *Spatial2D) ContainsRange(x, y Range) *Enum {
 func (this *Spatial2D) WithinRange(x, y Range) *Enum {
 	return this.searchRange(x, y, this.x.WithinRange, this.y.WithinRange)
 }
-
-type _search1Dfunc func(x, y float64) *Enum
 
 func (this *Spatial2D) searchRange(x, y Range, fnX, fnY _search1Dfunc) *Enum {
 	oEnum := &Enum{ch: make(chan interface{}, 0)}
