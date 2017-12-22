@@ -24,8 +24,8 @@ func (this *Spatial1D) AddRange(r Range, v interface{}) error {
 	r.maximizeIfZeroMax()
 	w, _ := this.store.Writer()
 	batch := w.NewBatch()
-	batch.Set(toKey(cPrefixRange, r), vbb)
-	batch.Set(toKeyReverse(cPrefixRangeReverse, r), vbb)
+	batch.Set(toKey(cPrefixRange, r, item.id), vbb)
+	batch.Set(toKeyReverse(cPrefixRangeReverse, r, item.id), vbb)
 	w.ExecuteBatch(batch)
 
 	return nil
@@ -43,10 +43,10 @@ func (this *Spatial1D) ContainsRange(min, max float64) *Enum {
 	oEnum := &Enum{ch: make(chan *_Item, 0)}
 	go func() {
 		rdr, _ := this.store.Reader()
-		iter := rdr.RangeIterator(toKeyReverse(cPrefixRangeReverse, Range{min, max}), bbEndKeyRangeReverse)
+		iter := rdr.RangeIterator(searchKey(cPrefixRangeReverse, max), bbEndKeyRangeReverse)
 		for iter.Valid() {
 			k, v, _ := iter.Current()
-			r := keyToRange(k)
+			r, id := keyToRange(k)
 			bValid := IsLessOrEqual(r.Min, min) && IsLessOrEqual(max, r.Max)
 			if !bValid {
 				oEnum.Close()
@@ -57,6 +57,7 @@ func (this *Spatial1D) ContainsRange(min, max float64) *Enum {
 			if nil != err {
 				oEnum.ch <- &_Item{Error: err}
 			} else {
+				o.id = id
 				oEnum.ch <- o
 			}
 
@@ -79,7 +80,7 @@ func (this *Spatial1D) WithinRange(min, max float64) *Enum {
 		iter := rdr.RangeIterator(searchKey(cPrefixRange, min), bbEndKeyRange)
 		for iter.Valid() {
 			k, v, _ := iter.Current()
-			r := keyToRange(k)
+			r, id := keyToRange(k)
 			bValid := IsLessOrEqual(r.Max, max)
 			if !bValid {
 				oEnum.Close()
@@ -90,6 +91,7 @@ func (this *Spatial1D) WithinRange(min, max float64) *Enum {
 			if nil != err {
 				oEnum.ch <- &_Item{Error: err}
 			} else {
+				o.id = id
 				oEnum.ch <- o
 			}
 

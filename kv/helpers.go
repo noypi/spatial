@@ -6,7 +6,7 @@ import (
 	"encoding/gob"
 	"math"
 
-	"github.com/twinj/uuid"
+	"github.com/rs/xid"
 )
 
 const (
@@ -23,7 +23,7 @@ var Epsilon = math.Nextafter(1, 2) - 1
 var Epsilonx10 = Epsilon * 10
 
 func NewItem(v interface{}) *_Item {
-	return &_Item{Value: v, ID: uuid.NewV4().String()}
+	return &_Item{Value: v, id: xid.New()}
 }
 
 func init() {
@@ -31,6 +31,8 @@ func init() {
 	bbEndKeyRangeReverse[0] = cPrefixRangeReverse
 	gob.Register(_gobitem{})
 	gob.Register(_Item{})
+	gob.Register(xid.ID{})
+	gob.Register(Range{})
 }
 
 func IsZero(a float64) bool {
@@ -55,7 +57,8 @@ type _gobitem struct {
 type _Item struct {
 	Error error
 	Value interface{}
-	ID    string
+	Range []Range
+	id    xid.ID
 }
 
 func GobSerialize(v *_Item) ([]byte, error) {
@@ -96,24 +99,27 @@ func DeserializeFloat64(bb []byte) float64 {
 	return math.Float64frombits(n)
 }
 
-func toKey(prefix byte, r Range) []byte {
-	return toKeyf(prefix, r.Min, r.Max)
+func toKey(prefix byte, r Range, id xid.ID) []byte {
+	return toKeyf(prefix, r.Min, r.Max, id)
+
 }
 
-func toKeyReverse(prefix byte, r Range) []byte {
-	return toKeyf(prefix, r.Max, r.Min)
+func toKeyReverse(prefix byte, r Range, id xid.ID) []byte {
+	return toKeyf(prefix, r.Max, r.Min, id)
+
 }
 
-func toKeyf(prefix byte, min, max float64) []byte {
+func toKeyf(prefix byte, min, max float64, id xid.ID) []byte {
 	key := append([]byte{prefix}, SerializeFloat64(min)...)
-	return append(key, SerializeFloat64(max)...)
+	bb := append(key, SerializeFloat64(max)...)
+	return append(bb, id[:]...)
 }
 
 func searchKey(prefix byte, f float64) []byte {
 	return append([]byte{prefix}, SerializeFloat64(f)...)
 }
 
-func keyToRange(bb []byte) (r Range) {
+func keyToRange(bb []byte) (r Range, id xid.ID) {
 	f1 := DeserializeFloat64(bb[1:9])
 	f2 := DeserializeFloat64(bb[9:17])
 	if cPrefixRange == bb[0] {
@@ -121,6 +127,7 @@ func keyToRange(bb []byte) (r Range) {
 	} else if cPrefixRangeReverse == bb[0] {
 		r.Min, r.Max = f2, f1
 	}
+	copy(id[:], bb[17:29])
 	return
 }
 
