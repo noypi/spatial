@@ -7,9 +7,10 @@ import (
 )
 
 type _Enum struct {
-	syncCh sync.Mutex
-	closed bool
-	ch     chan Item
+	syncCh    sync.Mutex
+	closed    bool
+	ch        chan Item
+	kvcommits []func()
 }
 
 func (this *_Enum) Next() (v Item, has bool) {
@@ -22,6 +23,18 @@ func (this *_Enum) Close() {
 	if !this.closed {
 		close(this.ch)
 		this.closed = true
+		if 0 < len(this.kvcommits) {
+			for _, c := range this.kvcommits {
+				c()
+			}
+		}
+		this.kvcommits = nil
 	}
+	this.syncCh.Unlock()
+}
+
+func (this *_Enum) addtocommit(c func()) {
+	this.syncCh.Lock()
+	this.kvcommits = append(this.kvcommits, c)
 	this.syncCh.Unlock()
 }

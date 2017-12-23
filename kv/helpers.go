@@ -8,6 +8,7 @@ import (
 
 	. "github.com/noypi/spatial/common"
 
+	"github.com/noypi/kv"
 	"github.com/rs/xid"
 )
 
@@ -21,8 +22,11 @@ var (
 	bbEndKeyRangeReverse = fillarray(0xff, 17)
 )
 
-func NewItem(v interface{}) *_Item {
-	return &_Item{V: v, id: xid.New()}
+func NewItem(v interface{}, rs ...Range) *_Item {
+	o := &_Item{V: v, id: xid.New()}
+	o.Ranges = make([]Range, len(rs))
+	copy(o.Ranges, rs)
+	return o
 }
 
 func init() {
@@ -39,6 +43,28 @@ type _search2Dfunc func(x, y Range) Enum
 
 type _gobitem struct {
 	V *_Item
+}
+
+func serializev(v interface{}, rs ...Range) (vbb []byte, id xid.ID, err error) {
+	var item *_Item
+	if o, ok := v.(*_Item); ok {
+		item = o
+	} else {
+		item = NewItem(v, rs...)
+	}
+	id = item.id
+	vbb, err = GobSerialize(item)
+	return
+}
+
+func setItemToBatch(batch kv.KVBatch, r Range, id xid.ID, vbb []byte) {
+	batch.Set(toKey(cPrefixRange, r, id), vbb)
+	batch.Set(toKeyReverse(cPrefixRangeReverse, r, id), vbb)
+}
+
+func deleteItemToBatch(batch kv.KVBatch, r Range, id xid.ID) {
+	batch.Delete(toKey(cPrefixRange, r, id))
+	batch.Delete(toKeyReverse(cPrefixRangeReverse, r, id))
 }
 
 func GobSerialize(v *_Item) ([]byte, error) {

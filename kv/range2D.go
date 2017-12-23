@@ -5,7 +5,7 @@ import (
 )
 
 func (this *Spatial2D) AddRange(x, y Range, v interface{}) error {
-	item := NewItem(v)
+	item := NewItem(v, x, y)
 	if err := this.x.AddRange(x, item); nil != err {
 		return err
 	}

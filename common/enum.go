@@ -5,6 +5,8 @@ type Item interface {
 	Value() interface{}
 	ID() string
 	Range(n int) Range
+	Delete()
+	Set(v interface{}) error
 }
 
 type Enum interface {

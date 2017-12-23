@@ -12,13 +12,7 @@ const (
 )
 
 func (this *Spatial1D) AddRange(r Range, v interface{}) error {
-	var item *_Item
-	if o, ok := v.(*_Item); ok {
-		item = o
-	} else {
-		item = NewItem(v)
-	}
-	vbb, err := GobSerialize(item)
+	vbb, id, err := serializev(v)
 	if nil != err {
 		return err
 	}
@@ -26,8 +20,7 @@ func (this *Spatial1D) AddRange(r Range, v interface{}) error {
 	r.MaximizeIfZeroMax()
 	w, _ := this.store.Writer()
 	batch := w.NewBatch()
-	batch.Set(toKey(cPrefixRange, r, item.id), vbb)
-	batch.Set(toKeyReverse(cPrefixRangeReverse, r, item.id), vbb)
+	setItemToBatch(batch, r, id, vbb)
 	w.ExecuteBatch(batch)
 
 	return nil
@@ -60,6 +53,8 @@ func (this *Spatial1D) ContainsRange(min, max float64) Enum {
 				oEnum.ch <- &_Item{err: err}
 			} else {
 				o.id = id
+				o.kvkey = k
+				o.enum = oEnum
 				oEnum.ch <- o
 			}
 
@@ -94,6 +89,8 @@ func (this *Spatial1D) WithinRange(min, max float64) Enum {
 				oEnum.ch <- &_Item{err: err}
 			} else {
 				o.id = id
+				o.kvkey = k
+				o.enum = oEnum
 				oEnum.ch <- o
 			}
 
