@@ -6,6 +6,8 @@ import (
 	"encoding/gob"
 	"math"
 
+	. "github.com/noypi/spatial/common"
+
 	"github.com/rs/xid"
 )
 
@@ -19,11 +21,8 @@ var (
 	bbEndKeyRangeReverse = fillarray(0xff, 17)
 )
 
-var Epsilon = math.Nextafter(1, 2) - 1
-var Epsilonx10 = Epsilon * 10
-
 func NewItem(v interface{}) *_Item {
-	return &_Item{Value: v, id: xid.New()}
+	return &_Item{V: v, id: xid.New()}
 }
 
 func init() {
@@ -35,30 +34,11 @@ func init() {
 	gob.Register(Range{})
 }
 
-func IsZero(a float64) bool {
-	return math.Abs(a) < Epsilon
-}
-
-func IsLessOrEqual(a, b float64) bool {
-	if a < b {
-		return true
-	}
-
-	return IsZero(a - b)
-}
-
-type _search1Dfunc func(x, y float64) *Enum
-type _search2Dfunc func(x, y Range) *Enum
+type _search1Dfunc func(x, y float64) Enum
+type _search2Dfunc func(x, y Range) Enum
 
 type _gobitem struct {
 	V *_Item
-}
-
-type _Item struct {
-	Error error
-	Value interface{}
-	Range []Range
-	id    xid.ID
 }
 
 func GobSerialize(v *_Item) ([]byte, error) {

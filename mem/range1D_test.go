@@ -3,6 +3,7 @@ package spatial_test
 import (
 	"testing"
 
+	. "github.com/noypi/spatial/common"
 	. "github.com/noypi/spatial/mem"
 	assertpkg "github.com/stretchr/testify/assert"
 )
@@ -19,10 +20,10 @@ func TestWithinRange(t *testing.T) {
 	e := o.WithinRange(5, 11)
 	v, has := e.Next()
 	assert.True(has)
-	assert.Equal("5-10", v)
+	assert.Equal("5-10", v.Value())
 	v, has = e.Next()
 	assert.True(has)
-	assert.Equal("6-10", v)
+	assert.Equal("6-10", v.Value())
 	_, has = e.Next()
 	assert.False(has)
 
@@ -32,10 +33,10 @@ func TestWithinRange(t *testing.T) {
 	e = o.WithinRange(5, 0)
 	v, has = e.Next()
 	assert.True(has)
-	assert.Equal("5-10", v)
+	assert.Equal("5-10", v.Value())
 	v, has = e.Next()
 	assert.True(has)
-	assert.Equal("6-10", v)
+	assert.Equal("6-10", v.Value())
 	_, has = e.Next()
 	assert.False(has)
 
@@ -43,7 +44,7 @@ func TestWithinRange(t *testing.T) {
 	e = o.WithinRange(0, 6)
 	v, has = e.Next()
 	assert.True(has)
-	assert.Equal("3-6", v)
+	assert.Equal("3-6", v.Value())
 	_, has = e.Next()
 	assert.False(has)
 
@@ -61,10 +62,10 @@ func TestContainsRange(t *testing.T) {
 	//
 	e := o.ContainsRange(5, 7)
 	v, has := e.Next()
-	assert.Equal("5-10", v)
+	assert.Equal("5-10", v.Value())
 	assert.True(has)
 	v, has = e.Next()
-	assert.Equal("3-8", v)
+	assert.Equal("3-8", v.Value())
 	assert.True(has)
 	_, has = e.Next()
 	assert.False(has)
@@ -74,7 +75,7 @@ func TestContainsRange(t *testing.T) {
 	//
 	e = o.ContainsRange(5, 10)
 	v, has = e.Next()
-	assert.Equal("5-10", v)
+	assert.Equal("5-10", v.Value())
 	assert.True(has)
 	_, has = e.Next()
 	assert.False(has)
@@ -84,7 +85,7 @@ func TestContainsRange(t *testing.T) {
 	//
 	e = o.ContainsRange(4, 7)
 	v, has = e.Next()
-	assert.Equal("3-8", v)
+	assert.Equal("3-8", v.Value())
 	assert.True(has)
 	_, has = e.Next()
 	assert.False(has)
@@ -103,10 +104,10 @@ func TestContains(t *testing.T) {
 	//
 	e := o.Contains(5)
 	v, has := e.Next()
-	assert.Equal("5-10", v)
+	assert.Equal("5-10", v.Value())
 	assert.True(has)
 	v, has = e.Next()
-	assert.Equal("3-8", v)
+	assert.Equal("3-8", v.Value())
 	assert.True(has)
 	_, has = e.Next()
 	assert.False(has)
@@ -116,7 +117,7 @@ func TestContains(t *testing.T) {
 	//
 	e = o.Contains(4)
 	v, has = e.Next()
-	assert.Equal("3-8", v)
+	assert.Equal("3-8", v.Value())
 	assert.True(has)
 	_, has = e.Next()
 	assert.False(has)
@@ -124,7 +125,7 @@ func TestContains(t *testing.T) {
 	//
 	e = o.Contains(3)
 	v, has = e.Next()
-	assert.Equal("3-8", v)
+	assert.Equal("3-8", v.Value())
 	assert.True(has)
 	_, has = e.Next()
 	assert.False(has)
@@ -132,10 +133,10 @@ func TestContains(t *testing.T) {
 	//
 	e = o.Contains(10)
 	v, has = e.Next()
-	assert.Equal("6-10", v)
+	assert.Equal("6-10", v.Value())
 	assert.True(has)
 	v, has = e.Next()
-	assert.Equal("5-10", v)
+	assert.Equal("5-10", v.Value())
 	assert.True(has)
 	_, has = e.Next()
 	assert.False(has)

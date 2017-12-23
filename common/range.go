@@ -30,7 +30,7 @@ func (a Range) IsLessOrEqual(b Range) bool {
 	return 0 == cmp
 }
 
-func (a *Range) maximizeIfZeroMax() {
+func (a *Range) MaximizeIfZeroMax() {
 	if IsZero(a.Max) {
 		a.Max = float64(math.MaxFloat64)
 	}

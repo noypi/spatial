@@ -1,24 +1,33 @@
 package spatial
 
-func (this *Spatial3D) AddRange(x, y, z Range, v interface{}) {
-	this.xy.AddRange(x, y, v)
-	this.z.AddRange(z, v)
+import (
+	. "github.com/noypi/spatial/common"
+)
+
+func (this *Spatial3D) AddRange(x, y, z Range, v interface{}) error {
+	if err := this.xy.AddRange(x, y, v); nil != err {
+		return err
+	}
+	if err := this.z.AddRange(z, v); nil != err {
+		return err
+	}
+	return nil
 }
 
-func (this *Spatial3D) Contains(x, y, z float64) *Enum {
+func (this *Spatial3D) Contains(x, y, z float64) Enum {
 	return this.ContainsRange(Range{x, x}, Range{y, y}, Range{z, z})
 }
 
-func (this *Spatial3D) ContainsRange(x, y, z Range) *Enum {
+func (this *Spatial3D) ContainsRange(x, y, z Range) Enum {
 	return this.searchRange(x, y, z, this.xy.ContainsRange, this.z.ContainsRange)
 }
 
-func (this *Spatial3D) WithinRange(x, y, z Range) *Enum {
+func (this *Spatial3D) WithinRange(x, y, z Range) Enum {
 	return this.searchRange(x, y, z, this.xy.WithinRange, this.z.WithinRange)
 }
 
-func (this *Spatial3D) searchRange(x, y, z Range, fnXY _search2Dfunc, fnZ _search1Dfunc) *Enum {
-	oEnum := &Enum{ch: make(chan *_Item, 0)}
+func (this *Spatial3D) searchRange(x, y, z Range, fnXY _search2Dfunc, fnZ _search1Dfunc) Enum {
+	oEnum := &_Enum{ch: make(chan Item, 0)}
 
 	go func() {
 		m2 := map[string]struct{}{}
@@ -28,7 +37,7 @@ func (this *Spatial3D) searchRange(x, y, z Range, fnXY _search2Dfunc, fnZ _searc
 			if !has {
 				break
 			}
-			m2[v2.id.String()] = struct{}{}
+			m2[v2.(*_Item).id.String()] = struct{}{}
 		}
 
 		e = fnZ(z.Min, z.Max)
@@ -37,7 +46,7 @@ func (this *Spatial3D) searchRange(x, y, z Range, fnXY _search2Dfunc, fnZ _searc
 			if !has {
 				break
 			}
-			if _, has := m2[v3.id.String()]; has {
+			if _, has := m2[v3.(*_Item).id.String()]; has {
 				oEnum.ch <- v3
 			}
 		}

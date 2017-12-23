@@ -2,20 +2,22 @@ package spatial
 
 import (
 	"sync"
+
+	. "github.com/noypi/spatial/common"
 )
 
-type Enum struct {
+type _Enum struct {
 	syncCh sync.Mutex
 	closed bool
-	ch     chan interface{}
+	ch     chan Item
 }
 
-func (this *Enum) Next() (v interface{}, has bool) {
+func (this *_Enum) Next() (v Item, has bool) {
 	v, has = <-this.ch
 	return
 }
 
-func (this *Enum) Close() {
+func (this *_Enum) Close() {
 	this.syncCh.Lock()
 	if !this.closed {
 		close(this.ch)

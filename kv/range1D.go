@@ -2,6 +2,8 @@ package spatial
 
 import (
 	"math"
+
+	. "github.com/noypi/spatial/common"
 )
 
 const (
@@ -21,7 +23,7 @@ func (this *Spatial1D) AddRange(r Range, v interface{}) error {
 		return err
 	}
 
-	r.maximizeIfZeroMax()
+	r.MaximizeIfZeroMax()
 	w, _ := this.store.Writer()
 	batch := w.NewBatch()
 	batch.Set(toKey(cPrefixRange, r, item.id), vbb)
@@ -31,16 +33,16 @@ func (this *Spatial1D) AddRange(r Range, v interface{}) error {
 	return nil
 }
 
-func (this *Spatial1D) Contains(x float64) *Enum {
+func (this *Spatial1D) Contains(x float64) Enum {
 	return this.ContainsRange(x, x)
 }
 
-func (this *Spatial1D) ContainsRange(min, max float64) *Enum {
+func (this *Spatial1D) ContainsRange(min, max float64) Enum {
 	if IsLessOrEqual(max, min) {
 		max = min - Epsilonx10
 	}
 
-	oEnum := &Enum{ch: make(chan *_Item, 0)}
+	oEnum := &_Enum{ch: make(chan Item, 0)}
 	go func() {
 		rdr, _ := this.store.Reader()
 		iter := rdr.RangeIterator(searchKey(cPrefixRangeReverse, max), bbEndKeyRangeReverse)
@@ -55,7 +57,7 @@ func (this *Spatial1D) ContainsRange(min, max float64) *Enum {
 
 			o, err := GobDeserialize(v)
 			if nil != err {
-				oEnum.ch <- &_Item{Error: err}
+				oEnum.ch <- &_Item{err: err}
 			} else {
 				o.id = id
 				oEnum.ch <- o
@@ -69,8 +71,8 @@ func (this *Spatial1D) ContainsRange(min, max float64) *Enum {
 	return oEnum
 }
 
-func (this *Spatial1D) WithinRange(min, max float64) *Enum {
-	oEnum := &Enum{ch: make(chan *_Item, 0)}
+func (this *Spatial1D) WithinRange(min, max float64) Enum {
+	oEnum := &_Enum{ch: make(chan Item, 0)}
 	if max <= 0 {
 		max = float64(math.MaxFloat64)
 	}
@@ -89,7 +91,7 @@ func (this *Spatial1D) WithinRange(min, max float64) *Enum {
 
 			o, err := GobDeserialize(v)
 			if nil != err {
-				oEnum.ch <- &_Item{Error: err}
+				oEnum.ch <- &_Item{err: err}
 			} else {
 				o.id = id
 				oEnum.ch <- o

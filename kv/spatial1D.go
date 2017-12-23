@@ -3,6 +3,7 @@ package spatial
 import (
 	"github.com/noypi/kv"
 	"github.com/noypi/kv/gtreap"
+	. "github.com/noypi/spatial/common"
 )
 
 type Spatial1D struct {
