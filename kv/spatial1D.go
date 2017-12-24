@@ -7,7 +7,8 @@ import (
 )
 
 type Spatial1D struct {
-	store kv.KVStore
+	store     kv.KVStore
+	xyzOffset int
 }
 
 func New1D() *Spatial1D {

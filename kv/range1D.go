@@ -12,15 +12,19 @@ const (
 )
 
 func (this *Spatial1D) AddRange(r Range, v interface{}) error {
-	vbb, id, err := serializev(v)
+	item, vbb, err := serializev(v, r)
 	if nil != err {
 		return err
 	}
 
-	r.MaximizeIfZeroMax()
+	if 0 == len(item.Keys) {
+		panic("keys should not be zero.")
+	}
+
+	item.currKeyOffset = this.xyzOffset
 	w, _ := this.store.Writer()
 	batch := w.NewBatch()
-	setItemToBatch(batch, r, id, vbb)
+	setItemToBatch(batch, item.Keys[this.xyzOffset], vbb)
 	w.ExecuteBatch(batch)
 
 	return nil
@@ -41,7 +45,7 @@ func (this *Spatial1D) ContainsRange(min, max float64) Enum {
 		iter := rdr.RangeIterator(searchKey(cPrefixRangeReverse, max), bbEndKeyRangeReverse)
 		for iter.Valid() {
 			k, v, _ := iter.Current()
-			r, id := keyToRange(k)
+			r, _ := keyToRange(k)
 			bValid := IsLessOrEqual(r.Min, min) && IsLessOrEqual(max, r.Max)
 			if !bValid {
 				oEnum.Close()
@@ -52,8 +56,6 @@ func (this *Spatial1D) ContainsRange(min, max float64) Enum {
 			if nil != err {
 				oEnum.ch <- &_Item{err: err}
 			} else {
-				o.id = id
-				o.kvkey = k
 				o.enum = oEnum
 				oEnum.ch <- o
 			}
@@ -77,7 +79,7 @@ func (this *Spatial1D) WithinRange(min, max float64) Enum {
 		iter := rdr.RangeIterator(searchKey(cPrefixRange, min), bbEndKeyRange)
 		for iter.Valid() {
 			k, v, _ := iter.Current()
-			r, id := keyToRange(k)
+			r, _ := keyToRange(k)
 			bValid := IsLessOrEqual(r.Max, max)
 			if !bValid {
 				oEnum.Close()
@@ -88,8 +90,6 @@ func (this *Spatial1D) WithinRange(min, max float64) Enum {
 			if nil != err {
 				oEnum.ch <- &_Item{err: err}
 			} else {
-				o.id = id
-				o.kvkey = k
 				o.enum = oEnum
 				oEnum.ch <- o
 			}

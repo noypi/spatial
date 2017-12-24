@@ -22,18 +22,12 @@ var (
 	bbEndKeyRangeReverse = fillarray(0xff, 17)
 )
 
-func NewItem(v interface{}, rs ...Range) *_Item {
-	o := &_Item{V: v, id: xid.New()}
-	o.Ranges = make([]Range, len(rs))
-	copy(o.Ranges, rs)
-	return o
-}
-
 func init() {
 	bbEndKeyRange[0] = cPrefixRange
 	bbEndKeyRangeReverse[0] = cPrefixRangeReverse
 	gob.Register(_gobitem{})
 	gob.Register(_Item{})
+	gob.Register(ID{})
 	gob.Register(xid.ID{})
 	gob.Register(Range{})
 }
@@ -45,26 +39,26 @@ type _gobitem struct {
 	V *_Item
 }
 
-func serializev(v interface{}, rs ...Range) (vbb []byte, id xid.ID, err error) {
-	var item *_Item
+func serializev(v interface{}, r Range) (item *_Item, vbb []byte, err error) {
 	if o, ok := v.(*_Item); ok {
-		item = o
+		item = o.Clone()
 	} else {
-		item = NewItem(v, rs...)
+		item = NewItem(v, r)
 	}
-	id = item.id
 	vbb, err = GobSerialize(item)
 	return
 }
 
-func setItemToBatch(batch kv.KVBatch, r Range, id xid.ID, vbb []byte) {
-	batch.Set(toKey(cPrefixRange, r, id), vbb)
-	batch.Set(toKeyReverse(cPrefixRangeReverse, r, id), vbb)
+func setItemToBatch(batch kv.KVBatch, id ID, vbb []byte) {
+	batch.Set(id[:], vbb)
+	rev := id.Reverse(cPrefixRangeReverse)
+	batch.Set(rev[:], vbb)
 }
 
-func deleteItemToBatch(batch kv.KVBatch, r Range, id xid.ID) {
-	batch.Delete(toKey(cPrefixRange, r, id))
-	batch.Delete(toKeyReverse(cPrefixRangeReverse, r, id))
+func deleteItemToBatch(batch kv.KVBatch, id ID) {
+	batch.Delete(id[:])
+	rev := id.Reverse(cPrefixRangeReverse)
+	batch.Delete(rev[:])
 }
 
 func GobSerialize(v *_Item) ([]byte, error) {

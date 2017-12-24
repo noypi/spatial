@@ -27,3 +27,11 @@ func (this *_valuewrap) ID() string {
 func (this _valuewrap) Range(n int) Range {
 	return this.ranges[n]
 }
+
+func (this *_valuewrap) Delete() {
+	panic("TODO")
+}
+
+func (this *_valuewrap) Set(v interface{}) error {
+	panic("TODO")
+}

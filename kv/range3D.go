@@ -37,7 +37,7 @@ func (this *Spatial3D) searchRange(x, y, z Range, fnXY _search2Dfunc, fnZ _searc
 			if !has {
 				break
 			}
-			m2[v2.(*_Item).id.String()] = struct{}{}
+			m2[v2.(*_Item).ID()] = struct{}{}
 		}
 
 		e = fnZ(z.Min, z.Max)
@@ -46,7 +46,7 @@ func (this *Spatial3D) searchRange(x, y, z Range, fnXY _search2Dfunc, fnZ _searc
 			if !has {
 				break
 			}
-			if _, has := m2[v3.(*_Item).id.String()]; has {
+			if _, has := m2[v3.(*_Item).ID()]; has {
 				oEnum.ch <- v3
 			}
 		}

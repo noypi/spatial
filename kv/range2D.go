@@ -39,7 +39,7 @@ func (this *Spatial2D) searchRange(x, y Range, fnX, fnY _search1Dfunc) Enum {
 			if !has {
 				break
 			}
-			m1[v1.(*_Item).id.String()] = struct{}{}
+			m1[v1.(*_Item).ID()] = struct{}{}
 		}
 		e = fnY(y.Min, y.Max)
 		for {
@@ -47,7 +47,7 @@ func (this *Spatial2D) searchRange(x, y Range, fnX, fnY _search1Dfunc) Enum {
 			if !has {
 				break
 			}
-			if _, has := m1[v2.(*_Item).id.String()]; has {
+			if _, has := m1[v2.(*_Item).ID()]; has {
 				oEnum.ch <- v2
 			}
 		}
