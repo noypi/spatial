@@ -9,6 +9,7 @@ import (
 const (
 	cPrefixRange        = 0x00
 	cPrefixRangeReverse = 0x01
+	cPrefixExtInfo      = 0x11
 )
 
 func (this *Spatial1D) Set(id []byte, r Range, v interface{}) error {

@@ -25,7 +25,7 @@ var (
 func init() {
 	bbEndKeyRange[0] = cPrefixRange
 	bbEndKeyRangeReverse[0] = cPrefixRangeReverse
-	gob.Register(_gobitem{})
+	gob.Register(_gob{})
 	gob.Register(_Item{})
 	gob.Register(_ID{})
 	gob.Register(Range{})
@@ -34,8 +34,8 @@ func init() {
 type _search1Dfunc func(x, y uint64) Enum
 type _search2Dfunc func(x, y Range) Enum
 
-type _gobitem struct {
-	V *_Item
+type _gob struct {
+	V interface{}
 }
 
 func serializev(id []byte, v interface{}, r Range) (item *_Item, vbb []byte, err error) {
@@ -60,20 +60,33 @@ func deleteItemToBatch(batch kv.KVBatch, id _ID) {
 	batch.Delete(rev[:])
 }
 
-func GobSerialize(v *_Item) ([]byte, error) {
+func serializeRaw(v interface{}) ([]byte, error) {
 	buf := new(bytes.Buffer)
-	o := &_gobitem{v}
+	o := &_gob{v}
 	err := gob.NewEncoder(buf).Encode(o)
 	return buf.Bytes(), err
 }
 
-func GobDeserialize(bb []byte) (*_Item, error) {
+func deserializeRaw(bb []byte) (v interface{}, err error) {
+	o := new(_gob)
 	buf := bytes.NewBuffer(bb)
-	o := new(_gobitem)
 	if err := gob.NewDecoder(buf).Decode(o); nil != err {
 		return nil, err
 	}
 	return o.V, nil
+}
+
+func GobSerialize(v *_Item) ([]byte, error) {
+	return serializeRaw(v)
+}
+
+func GobDeserialize(bb []byte) (*_Item, error) {
+	v, err := deserializeRaw(bb)
+	if nil != err {
+		return nil, err
+	}
+	item := v.(_Item)
+	return &item, nil
 }
 
 func FloatToSortableInt(f float64) uint64 {

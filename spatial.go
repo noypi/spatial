@@ -2,7 +2,7 @@ package spatial
 
 import (
 	. "github.com/noypi/spatial/common"
-	skv "github.com/noypi/spatial/flatv1"
+	skv "github.com/noypi/spatial/db"
 )
 
 type Dimension int

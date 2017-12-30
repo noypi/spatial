@@ -11,8 +11,9 @@ import (
 func TestWithinRange(t *testing.T) {
 	assert := assertpkg.New(t)
 
-	o := New1D()
-	err := o.Set([]byte{1}, Range{5, 10}, "5-10")
+	o, err := New1D()
+	assert.Nil(err)
+	err = o.Set([]byte{1}, Range{5, 10}, "5-10")
 	assert.Nil(err)
 	err = o.Set([]byte{2}, Range{6, 10}, "6-10")
 	assert.Nil(err)
@@ -57,8 +58,9 @@ func TestWithinRange(t *testing.T) {
 func aTestContainsRange(t *testing.T) {
 	assert := assertpkg.New(t)
 
-	o := New1D()
-	err := o.Set([]byte{1}, Range{5, 10}, "5-10")
+	o, err := New1D()
+	assert.Nil(err)
+	err = o.Set([]byte{1}, Range{5, 10}, "5-10")
 	assert.Nil(err)
 	err = o.Set([]byte{2}, Range{6, 10}, "6-10")
 	assert.Nil(err)
@@ -102,10 +104,11 @@ func aTestContainsRange(t *testing.T) {
 func TestContains(t *testing.T) {
 	assert := assertpkg.New(t)
 
-	o := New1D()
-	o.Set([]byte{1}, Range{5, 10}, "5-10")
-	o.Set([]byte{2}, Range{6, 10}, "6-10")
-	o.Set([]byte{3}, Range{3, 8}, "3-8")
+	o, err := New1D()
+	assert.Nil(err)
+	assert.Nil(o.Set([]byte{1}, Range{5, 10}, "5-10"))
+	assert.Nil(o.Set([]byte{2}, Range{6, 10}, "6-10"))
+	assert.Nil(o.Set([]byte{3}, Range{3, 8}, "3-8"))
 
 	//
 	e := o.Contains(5)
