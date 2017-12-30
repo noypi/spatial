@@ -4,17 +4,17 @@ import (
 	. "github.com/noypi/spatial/common"
 )
 
-func (this *Spatial3D) AddRange(x, y, z Range, v interface{}) error {
-	if err := this.xy.AddRange(x, y, v); nil != err {
+func (this *Spatial3D) Set(id []byte, x, y, z Range, v interface{}) error {
+	if err := this.xy.Set(id, x, y, v); nil != err {
 		return err
 	}
-	if err := this.z.AddRange(z, v); nil != err {
+	if err := this.z.Set(id, z, v); nil != err {
 		return err
 	}
 	return nil
 }
 
-func (this *Spatial3D) Contains(x, y, z float64) Enum {
+func (this *Spatial3D) Contains(x, y, z uint64) Enum {
 	return this.ContainsRange(Range{x, x}, Range{y, y}, Range{z, z})
 }
 

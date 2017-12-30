@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	. "github.com/noypi/spatial/common"
-	. "github.com/noypi/spatial/kv"
+	. "github.com/noypi/spatial/db"
 	assertpkg "github.com/stretchr/testify/assert"
 )
 
@@ -12,11 +12,11 @@ func TestWithinRange(t *testing.T) {
 	assert := assertpkg.New(t)
 
 	o := New1D()
-	err := o.AddRange(Range{5, 10}, "5-10")
+	err := o.Set([]byte{1}, Range{5, 10}, "5-10")
 	assert.Nil(err)
-	err = o.AddRange(Range{6, 10}, "6-10")
+	err = o.Set([]byte{2}, Range{6, 10}, "6-10")
 	assert.Nil(err)
-	err = o.AddRange(Range{3, 6}, "3-6")
+	err = o.Set([]byte{3}, Range{3, 6}, "3-6")
 	assert.Nil(err)
 
 	//
@@ -58,11 +58,11 @@ func aTestContainsRange(t *testing.T) {
 	assert := assertpkg.New(t)
 
 	o := New1D()
-	err := o.AddRange(Range{5, 10}, "5-10")
+	err := o.Set([]byte{1}, Range{5, 10}, "5-10")
 	assert.Nil(err)
-	err = o.AddRange(Range{6, 10}, "6-10")
+	err = o.Set([]byte{2}, Range{6, 10}, "6-10")
 	assert.Nil(err)
-	err = o.AddRange(Range{3, 8}, "3-8")
+	err = o.Set([]byte{3}, Range{3, 8}, "3-8")
 	assert.Nil(err)
 
 	//
@@ -103,9 +103,9 @@ func TestContains(t *testing.T) {
 	assert := assertpkg.New(t)
 
 	o := New1D()
-	o.AddRange(Range{5, 10}, "5-10")
-	o.AddRange(Range{6, 10}, "6-10")
-	o.AddRange(Range{3, 8}, "3-8")
+	o.Set([]byte{1}, Range{5, 10}, "5-10")
+	o.Set([]byte{2}, Range{6, 10}, "6-10")
+	o.Set([]byte{3}, Range{3, 8}, "3-8")
 
 	//
 	e := o.Contains(5)

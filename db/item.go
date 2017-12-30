@@ -9,7 +9,7 @@ import (
 
 type _Item struct {
 	V       interface{}
-	Keys    []ID
+	Keys    []_ID
 	err     error
 	store   kv.KVStore
 	kvbatch kv.KVBatch
@@ -18,11 +18,11 @@ type _Item struct {
 	currKeyOffset int
 }
 
-func NewItem(v interface{}, rs ...Range) *_Item {
+func NewItem(id []byte, v interface{}, rs ...Range) *_Item {
 	o := &_Item{V: v}
-	o.Keys = make([]ID, len(rs))
+	o.Keys = make([]_ID, len(rs))
 	for i, r := range rs {
-		o.setItem(i, r)
+		o.setItem(i, r, id)
 	}
 
 	if 0 == len(o.Keys) {
@@ -32,13 +32,13 @@ func NewItem(v interface{}, rs ...Range) *_Item {
 	return o
 }
 
-func (this *_Item) setItem(keyOffset int, r Range) {
-	id := NewID()
-	id.SetPrefix(cPrefixRange)
+func (this *_Item) setItem(keyOffset int, r Range, id []byte) {
+	newid := NewID(id)
+	newid.SetPrefix(cPrefixRange)
 	r.MaximizeIfZeroMax()
-	id.SetLeftFloat64(r.Min)
-	id.SetRightFloat64(r.Max)
-	this.Keys[keyOffset] = id
+	newid.SetLeftUint64(r.Min)
+	newid.SetRightUint64(r.Max)
+	this.Keys[keyOffset] = newid
 }
 
 func (this _Item) Clone() *_Item {
@@ -59,8 +59,8 @@ func (this _Item) Error() error {
 
 func (this _Item) Range(n int) (r Range) {
 	id := this.Keys[n]
-	left := id.LeftFloat64()
-	right := id.RightFloat64()
+	left := id.LeftUint64()
+	right := id.RightUint64()
 	switch id.Prefix() {
 	case cPrefixRange:
 		r.Min = left

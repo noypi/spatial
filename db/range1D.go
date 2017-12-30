@@ -11,8 +11,8 @@ const (
 	cPrefixRangeReverse = 0x01
 )
 
-func (this *Spatial1D) AddRange(r Range, v interface{}) error {
-	item, vbb, err := serializev(v, r)
+func (this *Spatial1D) Set(id []byte, r Range, v interface{}) error {
+	item, vbb, err := serializev(id, v, r)
 	if nil != err {
 		return err
 	}
@@ -30,13 +30,13 @@ func (this *Spatial1D) AddRange(r Range, v interface{}) error {
 	return nil
 }
 
-func (this *Spatial1D) Contains(x float64) Enum {
+func (this *Spatial1D) Contains(x uint64) Enum {
 	return this.ContainsRange(x, x)
 }
 
-func (this *Spatial1D) ContainsRange(min, max float64) Enum {
-	if IsLessOrEqual(max, min) {
-		max = min - Epsilonx10
+func (this *Spatial1D) ContainsRange(min, max uint64) Enum {
+	if max < min {
+		max = min
 	}
 
 	oEnum := &_Enum{ch: make(chan Item, 0)}
@@ -46,7 +46,7 @@ func (this *Spatial1D) ContainsRange(min, max float64) Enum {
 		for iter.Valid() {
 			k, v, _ := iter.Current()
 			r, _ := keyToRange(k)
-			bValid := IsLessOrEqual(r.Min, min) && IsLessOrEqual(max, r.Max)
+			bValid := (r.Min <= min) && (max <= r.Max)
 			if !bValid {
 				oEnum.Close()
 				break
@@ -68,10 +68,10 @@ func (this *Spatial1D) ContainsRange(min, max float64) Enum {
 	return oEnum
 }
 
-func (this *Spatial1D) WithinRange(min, max float64) Enum {
+func (this *Spatial1D) WithinRange(min, max uint64) Enum {
 	oEnum := &_Enum{ch: make(chan Item, 0)}
 	if max <= 0 {
-		max = float64(math.MaxFloat64)
+		max = math.MaxUint64
 	}
 
 	go func() {
@@ -80,7 +80,7 @@ func (this *Spatial1D) WithinRange(min, max float64) Enum {
 		for iter.Valid() {
 			k, v, _ := iter.Current()
 			r, _ := keyToRange(k)
-			bValid := IsLessOrEqual(r.Max, max)
+			bValid := (r.Max <= max)
 			if !bValid {
 				oEnum.Close()
 				break

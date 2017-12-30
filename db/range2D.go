@@ -4,13 +4,19 @@ import (
 	. "github.com/noypi/spatial/common"
 )
 
-func (this *Spatial2D) AddRange(x, y Range, v interface{}) {
-	vwrap := &_valuewrap{v: v}
-	this.x.AddRange(x, vwrap)
-	this.y.AddRange(y, vwrap)
+func (this *Spatial2D) Set(id []byte, x, y Range, v interface{}) error {
+	item := NewItem(id, v, x, y)
+	if err := this.x.Set(id, x, item); nil != err {
+		return err
+	}
+	if err := this.y.Set(id, y, item); nil != err {
+		return err
+	}
+
+	return nil
 }
 
-func (this *Spatial2D) Contains(x, y float64) Enum {
+func (this *Spatial2D) Contains(x, y uint64) Enum {
 	return this.ContainsRange(Range{x, x}, Range{y, y})
 }
 
@@ -26,14 +32,14 @@ func (this *Spatial2D) searchRange(x, y Range, fnX, fnY _search1Dfunc) Enum {
 	oEnum := &_Enum{ch: make(chan Item, 0)}
 
 	go func() {
-		m1 := map[*_valuewrap]struct{}{}
+		m1 := map[string]struct{}{}
 		e := fnX(x.Min, x.Max)
 		for {
 			v1, has := e.Next()
 			if !has {
 				break
 			}
-			m1[v1.(*_valuewrap)] = struct{}{}
+			m1[v1.(*_Item).ID()] = struct{}{}
 		}
 		e = fnY(y.Min, y.Max)
 		for {
@@ -41,7 +47,7 @@ func (this *Spatial2D) searchRange(x, y Range, fnX, fnY _search1Dfunc) Enum {
 			if !has {
 				break
 			}
-			if _, has := m1[v2.(*_valuewrap)]; has {
+			if _, has := m1[v2.(*_Item).ID()]; has {
 				oEnum.ch <- v2
 			}
 		}

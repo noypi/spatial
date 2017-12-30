@@ -1,20 +1,10 @@
 package spatial
 
-import (
-	"math"
-)
-
-var Epsilon = math.Nextafter(1, 2) - 1
-var Epsilonx10 = Epsilon * 10
-
-func IsZero(a float64) bool {
-	return math.Abs(a) < Epsilon
-}
-
-func IsLessOrEqual(a, b float64) bool {
+func cmpUint64(a, b uint64) int {
 	if a < b {
-		return true
+		return -1
+	} else if a > b {
+		return 1
 	}
-
-	return IsZero(a - b)
+	return 0
 }

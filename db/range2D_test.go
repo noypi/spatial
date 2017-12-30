@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	. "github.com/noypi/spatial/common"
-	. "github.com/noypi/spatial/mem"
+	. "github.com/noypi/spatial/db"
 	assertpkg "github.com/stretchr/testify/assert"
 )
 
@@ -12,9 +12,9 @@ func TestWithinRange2D(t *testing.T) {
 	assert := assertpkg.New(t)
 
 	o := New2D()
-	o.AddRange(Range{5, 10}, Range{0, 11}, "5-10, 0-11")
-	o.AddRange(Range{6, 10}, Range{4, 6}, "6-10, 4-6")
-	o.AddRange(Range{3, 6}, Range{8, 15}, "3-6, 8-15")
+	o.Set([]byte{1}, Range{5, 10}, Range{0, 11}, "5-10, 0-11")
+	o.Set([]byte{2}, Range{6, 10}, Range{4, 6}, "6-10, 4-6")
+	o.Set([]byte{3}, Range{3, 6}, Range{8, 15}, "3-6, 8-15")
 
 	//
 	e := o.WithinRange(Range{5, 11}, Range{0, 11})

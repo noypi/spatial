@@ -5,21 +5,16 @@ import (
 )
 
 type Range struct {
-	Min, Max float64
+	Min, Max uint64
 }
 
 func (a Range) Compare(b Range) int {
-	cmp := a.Min - b.Min
-	if IsZero(cmp) {
-		cmp = a.Max - b.Max
+	cmp := cmpUint64(a.Min, b.Min)
+	if 0 == cmp {
+		cmp = cmpUint64(a.Max, b.Max)
 	}
 
-	if IsZero(cmp) {
-		return 0
-	} else if cmp < 0 {
-		return -1
-	}
-	return 1
+	return cmp
 }
 
 func (a Range) IsLessOrEqual(b Range) bool {
@@ -31,7 +26,7 @@ func (a Range) IsLessOrEqual(b Range) bool {
 }
 
 func (a *Range) MaximizeIfZeroMax() {
-	if IsZero(a.Max) {
-		a.Max = float64(math.MaxFloat64)
+	if 0 == a.Max {
+		a.Max = math.MaxUint64
 	}
 }
