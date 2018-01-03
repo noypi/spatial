@@ -46,7 +46,7 @@ func (this *Spatial1D) ContainsRange(min, max uint64) Enum {
 		iter := rdr.RangeIterator(searchKey(cPrefixRangeReverse, max), bbEndKeyRangeReverse)
 		for iter.Valid() {
 			k, v, _ := iter.Current()
-			r, _ := keyToRange(k)
+			r, _ := KeyToRange(k)
 			bValid := (r.Min <= min) && (max <= r.Max)
 			if !bValid {
 				oEnum.Close()
@@ -80,7 +80,7 @@ func (this *Spatial1D) WithinRange(min, max uint64) Enum {
 		iter := rdr.RangeIterator(searchKey(cPrefixRange, min), bbEndKeyRange)
 		for iter.Valid() {
 			k, v, _ := iter.Current()
-			r, _ := keyToRange(k)
+			r, _ := KeyToRange(k)
 			bValid := (r.Max <= max)
 			if !bValid {
 				oEnum.Close()

@@ -8,8 +8,12 @@ type SpatialGeo struct {
 	db *spatial.Spatial1D
 }
 
-func NewGeo() *SpatialGeo {
-	o := new(SpatialGeo)
-	o.db = spatial.New1D()
-	return o
+func NewGeo(opts ...spatial.Options) (o *SpatialGeo, err error) {
+	o = new(SpatialGeo)
+	o.db, err = spatial.New1D(opts...)
+	return
+}
+
+func (this SpatialGeo) DbPath() string {
+	return this.db.DbPath()
 }

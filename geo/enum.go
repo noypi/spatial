@@ -37,7 +37,7 @@ func (this *_EnumWithinLoop) Next() (item *RegionItem, has bool) {
 		}
 		reg := v.Value().(*Region)
 
-		if this.LoopBound.Contains(reg.Loop) {
+		if this.LoopBound.Contains(reg.Loop()) {
 			return &RegionItem{Region: reg, Item: v}, true
 		}
 	}
@@ -58,8 +58,7 @@ OUTER_LOOP:
 			return nil, false
 		}
 		reg := v.Value().(*Region)
-		pts := reg.Loop.Vertices()
-		for _, p := range pts {
+		for _, p := range reg.Pts {
 			if !this.reg.ContainsPoint(p) {
 				continue OUTER_LOOP
 			}

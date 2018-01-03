@@ -37,10 +37,6 @@ func ParseOpts(opts []Options) (m map[int]interface{}, err error) {
 		case OptKVDir:
 			m[cOptKVDir] = v.Dir
 		case OptKVName:
-			fmt.Println("kvname=", v)
-			if "true" == fmt.Sprintf("%v", v) {
-				panic("where coming from")
-			}
 			m[cOptKVName] = v.AnyKey
 		case optKVOptions:
 			m[cOptKVOptions] = v.KVOptions

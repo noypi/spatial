@@ -8,8 +8,8 @@ import (
 
 	. "github.com/noypi/spatial/common"
 
+	"github.com/golang/geo/s2"
 	"github.com/noypi/kv"
-	"github.com/rs/xid"
 )
 
 const (
@@ -29,6 +29,8 @@ func init() {
 	gob.Register(_Item{})
 	gob.Register(_ID{})
 	gob.Register(Range{})
+	gob.Register(s2.LatLng{})
+	gob.Register(s2.Loop{})
 }
 
 type _search1Dfunc func(x, y uint64) Enum
@@ -60,14 +62,14 @@ func deleteItemToBatch(batch kv.KVBatch, id _ID) {
 	batch.Delete(rev[:])
 }
 
-func serializeRaw(v interface{}) ([]byte, error) {
+func SerializeRaw(v interface{}) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	o := &_gob{v}
 	err := gob.NewEncoder(buf).Encode(o)
 	return buf.Bytes(), err
 }
 
-func deserializeRaw(bb []byte) (v interface{}, err error) {
+func DeserializeRaw(bb []byte) (v interface{}, err error) {
 	o := new(_gob)
 	buf := bytes.NewBuffer(bb)
 	if err := gob.NewDecoder(buf).Decode(o); nil != err {
@@ -77,11 +79,11 @@ func deserializeRaw(bb []byte) (v interface{}, err error) {
 }
 
 func GobSerialize(v *_Item) ([]byte, error) {
-	return serializeRaw(v)
+	return SerializeRaw(v)
 }
 
 func GobDeserialize(bb []byte) (*_Item, error) {
-	v, err := deserializeRaw(bb)
+	v, err := DeserializeRaw(bb)
 	if nil != err {
 		return nil, err
 	}
@@ -118,17 +120,17 @@ func DeserializeUint64(bb []byte) uint64 {
 	return binary.BigEndian.Uint64(bb)
 }
 
-func toKey(prefix byte, r Range, id xid.ID) []byte {
+func toKey(prefix byte, r Range, id _ID) []byte {
 	return toKeyf(prefix, r.Min, r.Max, id)
 
 }
 
-func toKeyReverse(prefix byte, r Range, id xid.ID) []byte {
+func toKeyReverse(prefix byte, r Range, id _ID) []byte {
 	return toKeyf(prefix, r.Max, r.Min, id)
 
 }
 
-func toKeyf(prefix byte, min, max uint64, id xid.ID) []byte {
+func toKeyf(prefix byte, min, max uint64, id _ID) []byte {
 	key := append([]byte{prefix}, SerializeUint64(min)...)
 	bb := append(key, SerializeUint64(max)...)
 	return append(bb, id[:]...)
@@ -138,7 +140,7 @@ func searchKey(prefix byte, n uint64) []byte {
 	return append([]byte{prefix}, SerializeUint64(n)...)
 }
 
-func keyToRange(bb []byte) (r Range, id xid.ID) {
+func KeyToRange(bb []byte) (r Range, id []byte) {
 	f1 := DeserializeUint64(bb[1:9])
 	f2 := DeserializeUint64(bb[9:17])
 	if cPrefixRange == bb[0] {
@@ -146,7 +148,9 @@ func keyToRange(bb []byte) (r Range, id xid.ID) {
 	} else if cPrefixRangeReverse == bb[0] {
 		r.Min, r.Max = f2, f1
 	}
-	copy(id[:], bb[cIDRequiredLen:len(bb)])
+	toCopy := bb[cIDRequiredLen:len(bb)]
+	id = make([]byte, len(toCopy))
+	copy(id[:], toCopy)
 	return
 }
 

@@ -5,7 +5,7 @@ import (
 )
 
 func (this *Spatial1D) SetExtInfo(category uint8, id []byte, v interface{}) error {
-	vbb, err := serializeRaw(v)
+	vbb, err := SerializeRaw(v)
 	if nil != err {
 		return err
 	}
@@ -39,7 +39,7 @@ func (this *Spatial1D) GetExtInfo(category uint8, id []byte) (v interface{}, err
 		return
 	}
 
-	return deserializeRaw(bb)
+	return DeserializeRaw(bb)
 }
 
 func (this *Spatial2D) SetExtInfo(category uint8, id []byte, v interface{}) error {

@@ -9,6 +9,7 @@ type Spatial1D struct {
 	store     kv.KVStore
 	extinfo   kv.KVStore
 	xyzOffset int
+	dbpath    string
 }
 
 func New1D(opts ...Options) (o *Spatial1D, err error) {
@@ -23,6 +24,9 @@ func New1D(opts ...Options) (o *Spatial1D, err error) {
 	}
 	if err = o.initExtInfoStore(mOpts); nil != err {
 		return
+	}
+	if o.dbpath, _ = mOpts[cOptKVDir].(string); 0 == len(o.dbpath) {
+		o.dbpath = "."
 	}
 
 	return
@@ -65,6 +69,10 @@ func (this *Spatial1D) initExtInfoStore(mOpts map[int]interface{}) error {
 
 	this.extinfo = store
 	return nil
+}
+
+func (this Spatial1D) DbPath() string {
+	return this.dbpath
 }
 
 func CompareFunc1D(a, b interface{}) int {

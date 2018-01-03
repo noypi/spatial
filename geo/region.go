@@ -11,11 +11,13 @@ import (
 func init() {
 	gob.Register(Region{})
 	gob.Register(s2.Loop{})
+	gob.Register(map[string]string{})
 }
 
 type Region struct {
-	Loop *s2.Loop
+	Pts  []s2.Point
 	V    interface{}
+	loop *s2.Loop
 }
 
 type RegionItem struct {
@@ -23,8 +25,16 @@ type RegionItem struct {
 	Item
 }
 
+func (this *Region) Loop() *s2.Loop {
+	if nil == this.loop {
+		this.loop = s2.LoopFromPoints(this.Pts)
+	}
+	return this.loop
+}
+
 func (this *Region) Marshal() (bb []byte, err error) {
 	buf := new(bytes.Buffer)
+	this.Pts = this.Loop().Vertices()
 	if err = gob.NewDecoder(buf).Decode(this); nil != err {
 		return
 	}

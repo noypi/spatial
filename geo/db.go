@@ -1,11 +1,18 @@
 package geo
 
 import (
+	"fmt"
+
 	"github.com/golang/geo/s2"
 	. "github.com/noypi/spatial/common"
 )
 
 func (this *SpatialGeo) AddRegion(id []byte, value interface{}, locs []s2.LatLng) error {
+
+	if 0 == len(locs) {
+		return fmt.Errorf("AddRegion err: invalid params, zero length locs.")
+	}
+
 	var min, max int
 
 	pts := make([]s2.Point, len(locs))
@@ -20,7 +27,7 @@ func (this *SpatialGeo) AddRegion(id []byte, value interface{}, locs []s2.LatLng
 		}
 	}
 
-	reg := &Region{Loop: s2.LoopFromPoints(pts), V: value}
+	reg := &Region{Pts: pts, loop: s2.LoopFromPoints(pts), V: value}
 	return this.db.Set(id, Range{uint64(ids[min]), uint64(ids[max])}, reg)
 }
 
@@ -65,9 +72,9 @@ func (this *SpatialGeo) Around(lat, lng float64, d Distance) EnumGeo {
 
 func (this *SpatialGeo) Within(item *RegionItem) EnumGeo {
 	reg := item.Region
-	rect := reg.Loop.RectBound()
+	rect := reg.Loop().RectBound()
 	rangeGeo := RangeGeo{Min: rect.Lo(), Max: rect.Hi()}
 
 	enum := this.db.WithinRange(rangeGeo.MinID(), rangeGeo.MaxID())
-	return &_EnumWithinLoop{LoopBound: reg.Loop, Enum: enum}
+	return &_EnumWithinLoop{LoopBound: reg.Loop(), Enum: enum}
 }
