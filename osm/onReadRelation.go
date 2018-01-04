@@ -18,12 +18,18 @@ func (this *OsmParser) ReadRelation(r gosmparse.Relation) {
 	}
 	this.tCurrent = gosmparse.RelationType
 
-	cnt := atomic.AddUint64(&this.nRelationCnt, 1)
+	cnt := atomic.AddUint64(&this.RelationCnt, 1)
 	if cnt < this.SkipRelations {
 		return
 	}
 	if (cnt % 500000) == 0 {
 		log.Println("relation cnt=", cnt)
+	}
+
+	latlngs := this.getS2Latlngs(r)
+	if 0 == len(latlngs) {
+		atomic.AddUint64(&this.MissedRelations, 1)
+		return
 	}
 
 	if err := this.indexTags(r); nil != err {
@@ -34,13 +40,13 @@ func (this *OsmParser) ReadRelation(r gosmparse.Relation) {
 	err := this.AddRegion(
 		id,
 		nil,
-		this.getS2Latlngs(r),
+		latlngs,
 	)
 	if nil != err {
 		log.Println("ReadRelation err:", err)
 	}
 
-	err = this.SetExtInfo(uint8(Way), id, r.Tags)
+	err = this.SetExtInfo(uint8(Relation), id, r.Tags)
 	if nil != err {
 		log.Println("ReadRelation err:", err)
 	}

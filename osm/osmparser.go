@@ -14,9 +14,9 @@ type OsmParser struct {
 	*Osm
 
 	syncAdd       sync.Mutex
-	nNodeCnt      uint64
-	nWayCnt       uint64
-	nRelationCnt  uint64
+	NodeCnt       uint64
+	WayCnt        uint64
+	RelationCnt   uint64
 	tCurrent      gosmparse.MemberType
 	tmpKv         kv.KVStore
 	tmpKvWrtr     kv.KVWriter
@@ -31,6 +31,18 @@ type OsmParser struct {
 	SkipRelations uint64
 
 	PreserveTmp bool
+
+	MissedWays      uint64
+	MissedRelations uint64
+}
+
+func (this OsmParser) DbPath() string {
+	return this.dbpath
+}
+
+func (this *OsmParser) LoadTempKV() (err error) {
+	this.PreserveTmp = true
+	return this.useTempKV()
 }
 
 func (this *OsmParser) useTempKV() (err error) {
@@ -51,6 +63,11 @@ func (this *OsmParser) useTempKV() (err error) {
 	return
 }
 
+func (this *OsmParser) Close() {
+	this.SpatialGeo.Close()
+	this.Cleanup()
+}
+
 func (this *OsmParser) Cleanup() {
 	if nil != this.tmpKvWrtr {
 		this.tmpKvWrtr.ExecuteBatch(this.tmpKvBatch)
@@ -62,8 +79,34 @@ func (this *OsmParser) Cleanup() {
 		this.tmpKv.Close()
 	}
 
-	if this.PreserveTmp {
+	if !this.PreserveTmp {
 		os.RemoveAll(this.dbpath + "/_tmpdb")
 	}
 
+}
+
+func (this OsmParser) MissedWaysPercent() float64 {
+	return float64(this.MissedWays) / float64(this.WayCnt)
+}
+
+func (this OsmParser) MissedRelationsPercent() float64 {
+	return float64(this.MissedRelations) / float64(this.RelationCnt)
+}
+
+func (this *OsmParser) CountWaysInTmpKV() int {
+	return this.countInTmpKV([]byte{'w'})
+}
+
+func (this *OsmParser) CountNodesInTmpKV() int {
+	return this.countInTmpKV([]byte{'n'})
+}
+
+func (this *OsmParser) countInTmpKV(prefix []byte) int {
+	rdr, err := this.tmpKv.Reader()
+	if nil != err {
+		panic("countInTmpKV err=" + err.Error())
+	}
+	iter := rdr.PrefixIterator(prefix)
+	defer iter.Close()
+	return iter.Count()
 }

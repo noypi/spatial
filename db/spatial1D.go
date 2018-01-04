@@ -86,3 +86,12 @@ func CompareReverseFunc1D(b, a interface{}) int {
 	b1 := b.(*Range)
 	return a1.Compare(*b1)
 }
+
+func (this *Spatial1D) Close() {
+	this.store.Close()
+	if nil != this.extinfo {
+		this.extinfo.Close()
+		this.extinfo = nil
+	}
+	this.store = nil
+}

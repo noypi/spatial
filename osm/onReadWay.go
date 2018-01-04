@@ -17,7 +17,7 @@ func (this *OsmParser) ReadWay(w gosmparse.Way) {
 	}
 	this.tCurrent = gosmparse.WayType
 
-	cnt := atomic.AddUint64(&this.nWayCnt, 1)
+	cnt := atomic.AddUint64(&this.WayCnt, 1)
 	if cnt < this.SkipWays {
 		return
 	}
@@ -27,7 +27,8 @@ func (this *OsmParser) ReadWay(w gosmparse.Way) {
 
 	latlngs, err := this.getLatlngFromTmpNodeMulti(w.NodeIDs)
 	if nil != err {
-		log.Println("ReadWay err:", err)
+		atomic.AddUint64(&this.MissedWays, 1)
+		//log.Println("ReadWay err:", err)
 		return
 	}
 	this.addTmpItemLatLngs('w', w.ID, latlngs)

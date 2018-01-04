@@ -41,9 +41,17 @@ func (this Osm) myDbPath() string {
 	return s
 }
 
+func (this *Osm) Close() {
+	this.SpatialGeo.Close()
+	if nil != this.index {
+		this.index.Close()
+		this.index = nil
+	}
+}
+
 func (this *Osm) GetInfo(id int64) (v interface{}, err error) {
 	bbID := idFromInt(id)
-	return this.GetExtInfo(uint8(Way), bbID)
+	return this.GetExtInfo(uint8(Relation), bbID)
 }
 
 func (this *Osm) openIndex() (err error) {

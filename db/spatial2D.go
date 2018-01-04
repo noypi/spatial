@@ -19,3 +19,8 @@ func New2D(opts ...Options) (o *Spatial2D, err error) {
 	o.y.xyzOffset = 1
 	return
 }
+
+func (this *Spatial2D) Close() {
+	this.x.Close()
+	this.y.Close()
+}

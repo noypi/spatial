@@ -1,17 +1,17 @@
 package geo_test
 
 import (
-	"fmt"
+	//"fmt"
 	"testing"
 
-	"github.com/golang/geo/s2"
+	//"github.com/golang/geo/s2"
 	//assertpkg "github.com/stretchr/testify/assert"
 )
 
 func TestGeo(t *testing.T) {
 
 	//latlng := s2.LatLngFromDegrees(1.1235, 2.2446)
-	latlng := s2.LatLngFromDegrees(1.12, 2.24)
+	/*latlng := s2.LatLngFromDegrees(1.12, 2.24)
 	rect := s2.RectFromLatLng(latlng)
 
 	rc := &s2.RegionCoverer{MaxLevel: 10, MaxCells: 8}
@@ -23,5 +23,5 @@ func TestGeo(t *testing.T) {
 		fmt.Println(c.LatLng())
 		fmt.Println("min=", c.RangeMin().LatLng())
 		fmt.Println("max=", c.RangeMax().LatLng())
-	}
+	}*/
 }

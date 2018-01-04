@@ -21,3 +21,8 @@ func New3D(opts ...Options) (o *Spatial3D, err error) {
 	o.z.xyzOffset = 2
 	return
 }
+
+func (this *Spatial3D) Close() {
+	this.xy.Close()
+	this.z.Close()
+}

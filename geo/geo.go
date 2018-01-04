@@ -17,3 +17,7 @@ func NewGeo(opts ...spatial.Options) (o *SpatialGeo, err error) {
 func (this SpatialGeo) DbPath() string {
 	return this.db.DbPath()
 }
+
+func (this *SpatialGeo) Close() {
+	this.db.Close()
+}
