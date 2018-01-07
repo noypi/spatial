@@ -1,6 +1,8 @@
 package spatial
 
 import (
+	"sync"
+
 	"github.com/noypi/kv"
 	. "github.com/noypi/spatial/common"
 )
@@ -8,8 +10,14 @@ import (
 type Spatial1D struct {
 	store     kv.KVStore
 	extinfo   kv.KVStore
+	extbatch  kv.KVBatch
+	extwrtr   kv.KVWriter
 	xyzOffset int
 	dbpath    string
+
+	syncExtBatch   sync.Mutex
+	extBatchCnt    uint
+	extBatchMaxCnt uint
 }
 
 func New1D(opts ...Options) (o *Spatial1D, err error) {
@@ -68,6 +76,7 @@ func (this *Spatial1D) initExtInfoStore(mOpts map[int]interface{}) error {
 	}
 
 	this.extinfo = store
+	this.extBatchMaxCnt = 1000
 	return nil
 }
 
@@ -88,6 +97,13 @@ func CompareReverseFunc1D(b, a interface{}) int {
 }
 
 func (this *Spatial1D) Close() {
+	this.FlushExt()
+	if nil != this.extwrtr {
+		this.extbatch.Close()
+		this.extbatch = nil
+		this.extwrtr.Close()
+		this.extwrtr = nil
+	}
 	this.store.Close()
 	if nil != this.extinfo {
 		this.extinfo.Close()

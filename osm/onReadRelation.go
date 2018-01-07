@@ -22,9 +22,6 @@ func (this *OsmParser) ReadRelation(r gosmparse.Relation) {
 	if cnt < this.SkipRelations {
 		return
 	}
-	if (cnt % 500000) == 0 {
-		log.Println("relation cnt=", cnt)
-	}
 
 	latlngs := this.getS2Latlngs(r)
 	if 0 == len(latlngs) {
@@ -32,24 +29,33 @@ func (this *OsmParser) ReadRelation(r gosmparse.Relation) {
 		return
 	}
 
-	if err := this.indexTags(r); nil != err {
-		log.Println("ReadRelation err:", err)
-	}
+	this.workerPool.AddWork(func() {
+		id := idFromInt(r.ID)
+		err := this.AddRegion(
+			id,
+			nil,
+			latlngs,
+		)
+		if nil != err {
+			return
+		}
 
-	id := idFromInt(r.ID)
-	err := this.AddRegion(
-		id,
-		nil,
-		latlngs,
-	)
-	if nil != err {
-		log.Println("ReadRelation err:", err)
-	}
+		if err := this.SetExtInfo(uint8(Relation), id, &Item{
+			LatLngs: latlngs,
+		}); nil == err {
+			this.indexTags(Relation, r.ID, r.Tags)
+		}
 
-	err = this.SetExtInfo(uint8(Relation), id, r.Tags)
-	if nil != err {
-		log.Println("ReadRelation err:", err)
-	}
+		this.syncAdd.Lock()
+		if int(this.batchsize) < this.indexBatch.Size() {
+			this.FlushExt()
+			this.flushIndex()
+
+			cnt := atomic.LoadUint64(&this.RelationCnt) - uint64(this.workerPool.ActiveWorksCount())
+			log.Println("batch relation cnt=", cnt)
+		}
+		this.syncAdd.Unlock()
+	})
 }
 
 func (this *OsmParser) getS2Latlngs(r gosmparse.Relation) []s2.LatLng {
@@ -64,12 +70,12 @@ func (this *OsmParser) getS2Latlngs(r gosmparse.Relation) []s2.LatLng {
 			pts = append(pts, latlng)
 
 		} else if gosmparse.WayType == rm.Type {
-			latlngs, err := this.getLatlngFromTmpWay(rm.ID)
+			item, err := this.getLatlngFromTmpWay(rm.ID)
 			if nil != err {
 				log.Println("getS2Latlngs() way, err:", err)
 				continue
 			}
-			pts = append(pts, latlngs...)
+			pts = append(pts, item.LatLngs...)
 
 		} else {
 			continue

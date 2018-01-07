@@ -70,7 +70,17 @@ func (this *SpatialGeo) Around(lat, lng float64, d Distance) EnumGeo {
 	return &_EnumWithinRegion{reg: r, Enum: enum}
 }
 
-func (this *SpatialGeo) Within(item *RegionItem) EnumGeo {
+func (this *SpatialGeo) Within(latlngs []s2.LatLng) EnumGeo {
+	pts := PointsFromLatLngs(latlngs)
+	loop := s2.LoopFromPoints(pts)
+	rect := loop.RectBound()
+	rangeGeo := RangeGeo{Min: rect.Lo(), Max: rect.Hi()}
+
+	enum := this.db.WithinRange(rangeGeo.MinID(), rangeGeo.MaxID())
+	return &_EnumWithinLoop{LoopBound: loop, Enum: enum}
+}
+
+func (this *SpatialGeo) WithinRegion(item *RegionItem) EnumGeo {
 	reg := item.Region
 	rect := reg.Loop().RectBound()
 	rangeGeo := RangeGeo{Min: rect.Lo(), Max: rect.Hi()}

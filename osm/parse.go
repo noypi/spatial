@@ -26,7 +26,9 @@ func (this *OsmParser) ParsePbf(r io.Reader) error {
 	defer this.Cleanup()
 	dec := gosmparse.NewDecoder(r)
 	dec.QueueSize = 50
-	return dec.Parse(this)
+	err = dec.Parse(this)
+	this.flushIndex()
+	return err
 }
 
 func (this *OsmParser) ParseFromTarBz2(r io.Reader) error {
@@ -52,11 +54,13 @@ func (this *OsmParser) ParseFromTar(r io.Reader) error {
 }
 
 func (this *OsmParser) addTmpItemLatLng(prefix byte, id int64, latlng s2.LatLng) {
-	this.addTmpItemLatLngs(prefix, id, []s2.LatLng{latlng})
+	this.addTmpItem(prefix, id, &Item{
+		LatLngs: []s2.LatLng{latlng},
+	})
 }
 
-func (this *OsmParser) addTmpItemLatLngs(prefix byte, id int64, latlng []s2.LatLng) {
-	bb, err := spatial.SerializeRaw(latlng)
+func (this *OsmParser) addTmpItem(prefix byte, id int64, item *Item) {
+	bb, err := spatial.SerializeRaw(item)
 	if nil != err {
 		log.Println("addTmpItem err:", err)
 		return
@@ -73,6 +77,8 @@ func (this *OsmParser) addTmpItemLatLngs(prefix byte, id int64, latlng []s2.LatL
 }
 
 func (this *OsmParser) execBatch() {
+	this.FlushExt()
+	this.flushIndex()
 	fmt.Println("batch cnt=", this.tmpKvBatchCnt)
 	this.tmpKvWrtr.ExecuteBatch(this.tmpKvBatch)
 	this.tmpKvBatch.Reset()
@@ -118,19 +124,19 @@ func (this *OsmParser) getLatlngFromTmpNodeMulti(ids []int64) (latlngs []s2.LatL
 			err = fmt.Errorf("%v, getLatlngFromTmpNodeMulti DeserializeRaw. len bb=%d.", err, len(bb))
 			return nil, err
 		}
-		latlngs[i] = v.([]s2.LatLng)[0]
+		latlngs[i] = v.(Item).LatLngs[0]
 		//latlngs = append(latlngs, v.([]s2.LatLng)[0])
 	}
 
 	return
 }
 
-func (this *OsmParser) getLatlngFromTmpWay(wayID int64) (latlngs []s2.LatLng, err error) {
+func (this *OsmParser) getLatlngFromTmpWay(wayID int64) (item Item, err error) {
 	v, err := this.getLatlngFromTmp('w', wayID)
 	if nil != err {
 		return
 	}
-	latlngs = v.([]s2.LatLng)
+	item = v.(Item)
 	return
 }
 
@@ -139,6 +145,6 @@ func (this *OsmParser) getLatlngFromTmpNode(nodeID int64) (latlng s2.LatLng, err
 	if nil != err {
 		return
 	}
-	latlng = v.([]s2.LatLng)[0]
+	latlng = v.(Item).LatLngs[0]
 	return
 }

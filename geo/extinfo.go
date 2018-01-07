@@ -7,3 +7,7 @@ func (this *SpatialGeo) SetExtInfo(category uint8, id []byte, v interface{}) err
 func (this *SpatialGeo) GetExtInfo(category uint8, id []byte) (v interface{}, err error) {
 	return this.db.GetExtInfo(category, id)
 }
+
+func (this *SpatialGeo) FlushExt() error {
+	return this.db.FlushExt()
+}

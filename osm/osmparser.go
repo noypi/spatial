@@ -8,6 +8,8 @@ import (
 	"github.com/noypi/kv"
 	"github.com/noypi/kv/leveldb"
 	"github.com/thomersch/gosmparse"
+
+	"github.com/noypi/worker"
 )
 
 type OsmParser struct {
@@ -34,6 +36,8 @@ type OsmParser struct {
 
 	MissedWays      uint64
 	MissedRelations uint64
+
+	workerPool worker.WorkerPool
 }
 
 func (this OsmParser) DbPath() string {
@@ -64,6 +68,7 @@ func (this *OsmParser) useTempKV() (err error) {
 }
 
 func (this *OsmParser) Close() {
+	this.flushIndex()
 	this.SpatialGeo.Close()
 	this.Cleanup()
 }
@@ -78,6 +83,8 @@ func (this *OsmParser) Cleanup() {
 		this.tmpKvWrtr = nil
 		this.tmpKv.Close()
 	}
+
+	this.cleanupIndex()
 
 	if !this.PreserveTmp {
 		os.RemoveAll(this.dbpath + "/_tmpdb")

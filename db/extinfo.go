@@ -15,13 +15,47 @@ func (this *Spatial1D) SetExtInfo(category uint8, id []byte, v interface{}) erro
 	buf.Write(id)
 	buf.WriteByte(category)
 
-	wrtr, err := this.extinfo.Writer()
-	if nil != err {
-		return err
+	return this.setExtInfo(buf.Bytes(), vbb)
+}
+
+func (this *Spatial1D) SetExtBatchSize(n uint) {
+	this.syncExtBatch.Lock()
+	this.extBatchCnt = n
+	this.syncExtBatch.Unlock()
+}
+
+func (this *Spatial1D) setExtInfo(k, v []byte) (err error) {
+	this.syncExtBatch.Lock()
+
+	if nil == this.extwrtr {
+		this.extwrtr, err = this.extinfo.Writer()
+		if nil != err {
+			return
+		}
 	}
-	batch := wrtr.NewBatch()
-	batch.Set(buf.Bytes(), vbb)
-	return wrtr.ExecuteBatch(batch)
+
+	if nil == this.extbatch {
+		this.extbatch = this.extwrtr.NewBatch()
+	}
+	this.extbatch.Set(k, v)
+	this.extBatchCnt++
+
+	this.syncExtBatch.Unlock()
+
+	return this.FlushExt()
+}
+
+func (this *Spatial1D) FlushExt() (err error) {
+	this.syncExtBatch.Lock()
+	defer this.syncExtBatch.Unlock()
+
+	if this.extBatchMaxCnt < this.extBatchCnt {
+		if err = this.extwrtr.ExecuteBatch(this.extbatch); nil == err {
+			this.extBatchCnt = 0
+			this.extbatch.Reset()
+		}
+	}
+	return err
 }
 
 func (this *Spatial1D) GetExtInfo(category uint8, id []byte) (v interface{}, err error) {
